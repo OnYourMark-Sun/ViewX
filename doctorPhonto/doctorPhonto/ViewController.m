@@ -22,6 +22,8 @@
 @property(nonatomic,strong) UIButton * btnRecovery ;
 //测量
 @property(nonatomic,strong) UIButton * btnMeasuring ;
+//原始比例
+@property(nonatomic,assign)CGSize SizeScale;
 @end
 
 @implementation ViewController
@@ -35,7 +37,6 @@
     ///set UI
     [self setUI];
     
-//    [self imageX];
 }
 
 
@@ -72,7 +73,7 @@
     //画线 量长度
     _btnMeasuring = [myButton buttonWithType:UIButtonTypeCustom frame:CGRectMake(_btnRecovery.right+IPHONEWIDTH(20), _btnRecovery.top, _btnRecovery.width, _btnRecovery.height) title:@"测量" colors:[UIColor whiteColor] andBackground:[UIColor blackColor] tag:12 andBlock:^(myButton *button) {
         drawView * draw = [[drawView alloc] initWithFrame:self.imageX.bounds];
-        
+        draw.scals = self.SizeScale.width/self.imageX.width;
         [self.scrollview addSubview:draw];
      
     }];
@@ -114,6 +115,7 @@
     [self dismissViewControllerAnimated:YES completion:nil];
 
     //处理照片大小
+    _SizeScale = image.size;
     self.scrollview.contentSize = CGSizeMake(image.size.width, image.size.height);
     
     self.imageX.frame = CGRectMake(0, 0, image.size.width, image.size.height);
@@ -133,6 +135,8 @@
     //把当前的缩放比例设进ZoomScale，以便下次缩放时实在现有的比例的基础上
     NSLog(@"scale is %f",scale);
     [_scrollview setZoomScale:scale animated:NO];
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"changecallName" object:[NSString stringWithFormat:@"%f",self.SizeScale.width/self.imageX.width]];
 }
 
 // 这个方法是针对scrollView在缩小时无法居中的问题，scrollView放大，只要在设置完zoomScale之后设置偏移量为(0,0)即可实现放大居中

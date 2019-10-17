@@ -14,9 +14,10 @@
 //@property(nonatomic,assign)CGPoint transPoint;
 @property(nonatomic,assign)CGPoint endPoint;
 @property(nonatomic,strong) UILabel * labeltext ;
+@property(nonatomic,strong) UIImageView * imageviewPop ;
 
 #define centerSize 60
-
+#define BigGW 70
 @end
 
 @implementation drawView
@@ -40,11 +41,28 @@
         _labeltext.userInteractionEnabled = YES;
         [self addSubview:_labeltext];
         [self setup];
+        
+        _imageviewPop = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, BigGW, BigGW)];
+        _imageviewPop.layer.cornerRadius = BigGW/2;
+        _imageviewPop.layer.borderColor = [UIColor grayColor].CGColor;
+        _imageviewPop.layer.borderWidth = 2;
+        _imageviewPop.backgroundColor = [UIColor clearColor];
+        
+        [[NSNotificationCenter defaultCenter]removeObserver:self name:@"changecallName" object:nil];
+        
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(changescall:) name:@"changecallName" object:nil];
+        
     }
     
     return self;
 }
 
+//通知改变比例
+-(void)changescall:(NSNotification*)notifacation{
+ 
+   NSString * str =  notifacation.object;
+    self.scals = [str floatValue];
+}
 //加载完xib就走
 -(void)awakeFromNib{
     [super awakeFromNib];
@@ -63,11 +81,22 @@
     
     [path addLineToPoint:_endPoint];
     _labeltext.center = CGPointMake((_currentPoint.x - _endPoint.x)>0?_endPoint.x+centerSize:_endPoint.x-centerSize,(_currentPoint.y - _endPoint.y)>centerSize? _endPoint.y+centerSize:_endPoint.y-centerSize);
-    _labeltext.text = [NSString stringWithFormat:@"%0.1f mm",sqrtf(pow((_currentPoint.x - _endPoint.x), 2) + pow((_currentPoint.y - _endPoint.y), 2))];
+    
+    CGPoint center=CGPointMake(_labeltext.center.x, _labeltext.center.y-50);
+    _imageviewPop.center =center;
+    
+    _labeltext.text = [NSString stringWithFormat:@"%0.1f mm",sqrtf(pow((_currentPoint.x - _endPoint.x), 2) + pow((_currentPoint.y - _endPoint.y), 2))*self.scals/3];
     
     path.lineJoinStyle = kCGLineJoinRound;
     [[UIColor yellowColor] set];
     [path stroke];
+    
+//
+//    CGContextRef context = UIGraphicsGetCurrentContext();
+//    CGContextTranslateCTM(context,1*(self.frame.size.width*0.5),1*(self.frame.size.height*0.5));
+//    CGContextScaleCTM(context, 1.5, 1.5);
+//    CGContextTranslateCTM(context,-1*(_endPoint.x),-1*(_endPoint.y));
+//    [self.imageviewPop.layer renderInContext:context];
 }
 //返回随机颜色
 -(UIColor*)returnColor{
@@ -92,16 +121,18 @@
         case UIGestureRecognizerStateBegan:
            
             self.currentPoint = [pan locationInView:self];
-            
+//            [self addSubview:_imageviewPop];
             break;
             
         case UIGestureRecognizerStateChanged:
           
             _endPoint = [pan locationInView:self];
-            
+           
             break;
             
         case UIGestureRecognizerStateEnded:
+            
+            [_imageviewPop removeFromSuperview];
             
             break;
             
